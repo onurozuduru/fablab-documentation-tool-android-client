@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp" >
+
+    <ImageView
+        android:id="@+id/imageViewThumbnail"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
+        app:srcCompat="@android:drawable/ic_menu_report_image" />
+
+    <TextView
+        android:id="@+id/textViewStaticImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/imageViewThumbnail"
+        android:layout_toRightOf="@id/imageViewThumbnail"
+        android:layout_centerVertical="true"
+        android:textStyle="bold"
+        android:text="ImageID: " />
+
+    <TextView
+        android:id="@+id/textViewImageId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toEndOf="@id/textViewStaticImage"
+        android:layout_toRightOf="@id/textViewStaticImage"
+        android:text="id" />
+
+    <Button
+        android:id="@+id/buttonImageDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_centerVertical="true"
+        android:text="Remove" />
+</RelativeLayout>

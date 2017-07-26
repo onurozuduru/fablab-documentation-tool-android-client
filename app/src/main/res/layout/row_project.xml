@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp" >
+
+    <TextView
+        android:id="@+id/textViewProjectName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:textStyle="bold"
+        android:text="Project Name" />
+
+    <TextView
+        android:id="@+id/textViewStaticProjectId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textViewProjectName"
+        android:layout_alignStart="@id/textViewProjectName"
+        android:layout_alignLeft="@id/textViewProjectName"
+        android:text="ID: " />
+
+    <TextView
+        android:id="@+id/textViewProjectId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/textViewProjectName"
+        android:layout_toEndOf="@id/textViewStaticProjectId"
+        android:layout_toRightOf="@id/textViewStaticProjectId"
+        android:text="id" />
+
+    <Button
+        android:id="@+id/buttonProjectDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:text="Remove" />
+</RelativeLayout>
