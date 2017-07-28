@@ -8,7 +8,10 @@ JSON Object:
     }
 */
 
-public class File {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class File implements Parcelable {
     private int id;
     private String filepath;
 
@@ -32,4 +35,32 @@ public class File {
     public void setFilepath(String filepath) {
         this.filepath = filepath;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(this.id);
+        dest.writeString(this.filepath);
+    }
+
+    protected File(Parcel in) {
+        this.id = in.readInt();
+        this.filepath = in.readString();
+    }
+
+    public static final Parcelable.Creator<File> CREATOR = new Parcelable.Creator<File>() {
+        @Override
+        public File createFromParcel(Parcel source) {
+            return new File(source);
+        }
+
+        @Override
+        public File[] newArray(int size) {
+            return new File[size];
+        }
+    };
 }

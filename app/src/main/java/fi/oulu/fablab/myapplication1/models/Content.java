@@ -15,11 +15,14 @@ JSON Object:
     }
 */
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-public class Content {
+public class Content implements Parcelable {
     private String content;
     private boolean status;
     private int authorid;
@@ -118,4 +121,46 @@ public class Content {
             return items;
         }
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.content);
+        dest.writeByte(this.status ? (byte) 1 : (byte) 0);
+        dest.writeInt(this.authorid);
+        dest.writeString(this.title);
+        dest.writeTypedList(this.images);
+        dest.writeParcelable(this.author, flags);
+        dest.writeInt(this.id);
+        dest.writeTypedList(this.files);
+        dest.writeString(this.createtime);
+    }
+
+    protected Content(Parcel in) {
+        this.content = in.readString();
+        this.status = in.readByte() != 0;
+        this.authorid = in.readInt();
+        this.title = in.readString();
+        this.images = in.createTypedArrayList(Image.CREATOR);
+        this.author = in.readParcelable(User.class.getClassLoader());
+        this.id = in.readInt();
+        this.files = in.createTypedArrayList(File.CREATOR);
+        this.createtime = in.readString();
+    }
+
+    public static final Parcelable.Creator<Content> CREATOR = new Parcelable.Creator<Content>() {
+        @Override
+        public Content createFromParcel(Parcel source) {
+            return new Content(source);
+        }
+
+        @Override
+        public Content[] newArray(int size) {
+            return new Content[size];
+        }
+    };
 }

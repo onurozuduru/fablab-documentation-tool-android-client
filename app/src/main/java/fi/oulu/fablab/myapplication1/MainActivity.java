@@ -13,9 +13,6 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.TextView;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import fi.oulu.fablab.myapplication1.models.Content;
 import retrofit.Callback;
 import retrofit.RequestInterceptor;
@@ -26,6 +23,8 @@ import retrofit.client.Response;
 public class MainActivity extends AppCompatActivity {
     private RecyclerView mRecyclerView;
     private ProjectsAdapter mAdapter;
+    public static ApiClient API_CLIENT;
+    public static ApiClient API_CLIENT_NO_USERID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,17 +32,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        API_CLIENT = new ApiClient("1");
+        API_CLIENT_NO_USERID = new ApiClient();
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerViewProjectList);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         mAdapter = new ProjectsAdapter(this);
         mRecyclerView.setAdapter(mAdapter);
-//        List<Content> projects = new ArrayList<>();
-//
-//        for (int i = 0; i < 25; i++) {
-//            projects.add(new Content("Content", 0, "Title", 0));
-//        }
-//        mAdapter.setProjectList(projects);
+
         setRestAdaptor();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
@@ -56,18 +52,14 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        setRestAdaptor();
+    }
+
     private void setRestAdaptor() {
-        RestAdapter restAdapter = new RestAdapter.Builder()
-                .setEndpoint("http://10.20.203.95/api")
-                .setRequestInterceptor(new RequestInterceptor() {
-                    @Override
-                    public void intercept(RequestFacade request) {
-                        request.addEncodedQueryParam("userid", "1");
-                    }
-                })
-                .setLogLevel(RestAdapter.LogLevel.FULL)
-                .build();
-        ContentApiService service = restAdapter.create(ContentApiService.class);
+        ApiService service = API_CLIENT.getApiService();
         service.getProjectList(new Callback<Content.ContentItems>() {
             @Override
             public void success(Content.ContentItems projectResult, Response response) {

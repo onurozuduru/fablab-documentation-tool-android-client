@@ -10,7 +10,10 @@ JSON Object:
     }
 */
 
-public class Image {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+public class Image implements Parcelable {
     private String notes;
     private String imagepath;
     private String thumbpath;
@@ -54,4 +57,36 @@ public class Image {
     public void setId(int id) {
         this.id = id;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(this.notes);
+        dest.writeString(this.imagepath);
+        dest.writeString(this.thumbpath);
+        dest.writeInt(this.id);
+    }
+
+    protected Image(Parcel in) {
+        this.notes = in.readString();
+        this.imagepath = in.readString();
+        this.thumbpath = in.readString();
+        this.id = in.readInt();
+    }
+
+    public static final Parcelable.Creator<Image> CREATOR = new Parcelable.Creator<Image>() {
+        @Override
+        public Image createFromParcel(Parcel source) {
+            return new Image(source);
+        }
+
+        @Override
+        public Image[] newArray(int size) {
+            return new Image[size];
+        }
+    };
 }

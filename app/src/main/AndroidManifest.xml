@@ -21,6 +21,24 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ProjectDetailActivity"
+            android:label="@string/title_activity_project_detail"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="fi.oulu.fablab.myapplication1.MainActivity" />
+        </activity>
+        <activity
+            android:name=".ImageDetailActivity"
+            android:label="@string/title_activity_image_detail"
+            android:parentActivityName=".ProjectDetailActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="fi.oulu.fablab.myapplication1.ProjectDetailActivity" />
+        </activity>
     </application>
 
 </manifest>
