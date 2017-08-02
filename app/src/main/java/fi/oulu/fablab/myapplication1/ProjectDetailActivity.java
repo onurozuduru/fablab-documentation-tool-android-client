@@ -1,11 +1,13 @@
 package fi.oulu.fablab.myapplication1;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -60,8 +62,11 @@ public class ProjectDetailActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                        .setAction("Action", null).show();
+                Intent intent = new Intent(view.getContext(), PhotoUploadActivity.class);
+                intent.putExtra("id", String.valueOf(mProject.getId()));
+                view.getContext().startActivity(intent);
             }
         });
         //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -133,12 +138,46 @@ public class ProjectDetailActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onBindViewHolder(ImageViewHolder holder, int position) {
-            Image image = mImageList.get(position);
+        public void onBindViewHolder(ImageViewHolder holder, final int position) {
+            final Image image = mImageList.get(position);
             holder.textViewId.setText(String.valueOf(image.getId()));
             Picasso.with(mContext)
                     .load(image.getThumbpath())
                     .into(holder.imageViewThumbnail);
+
+            holder.buttonRemoveImage.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(final View view) {
+                    // Ask users if they sure about their actions.
+                    new AlertDialog.Builder(mContext)
+                            .setTitle("Remove Image")
+                            .setMessage("Do you really want to remove image?")
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int whichButton) {
+                                    // If user approve, remove the image and update list.
+                                    ApiService service = MainActivity.API_CLIENT.getApiService();
+                                    service.removeImage(String.valueOf(image.getId()), new Callback<Void>() {
+                                        @Override
+                                        public void success(Void aVoid, Response response) {
+                                            //Remove from list
+                                            mImageList.remove(position);
+                                            //Update the list.
+                                            updateProject();
+                                            // Inform user about consequences of their actions.
+                                            Snackbar.make(view, "Image is removed!", Snackbar.LENGTH_LONG)
+                                                    .setAction("Action", null).show();
+                                        }
+
+                                        @Override
+                                        public void failure(RetrofitError error) {
+
+                                        }
+                                    });
+                                }})
+                            .setNegativeButton(android.R.string.no, null).show();
+                }
+            });
         }
 
         @Override

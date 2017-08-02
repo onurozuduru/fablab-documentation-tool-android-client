@@ -3,4 +3,6 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_project_detail">ProjectDetailActivity</string>
     <string name="title_activity_image_detail">ImageDetailActivity</string>
+    <string name="title_activity_photo_upload">PhotoUploadActivity</string>
+    <string name="album_name">FabLab</string>
 </resources>

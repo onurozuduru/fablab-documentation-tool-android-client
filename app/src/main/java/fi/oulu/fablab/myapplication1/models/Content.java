@@ -42,6 +42,14 @@ public class Content implements Parcelable {
         this.status = false;
     }
 
+    public Content(String content, int authorid, String title) {
+        this.content = content;
+        this.authorid = authorid;
+        this.title = title;
+
+        this.status = false;
+    }
+
     public String getContent() {
         return content;
     }
