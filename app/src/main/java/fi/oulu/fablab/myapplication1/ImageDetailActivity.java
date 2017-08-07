@@ -70,7 +70,7 @@ public class ImageDetailActivity extends AppCompatActivity {
     }
 
     private void saveNotes(final View view) {
-        ApiService service = MainActivity.API_CLIENT_NO_USERID.getApiService();
+        ApiService service = MainActivity.API_CLIENT.getApiService(); //MainActivity.API_CLIENT_NO_USERID
 
         String notes = editTextNotes.getText().toString().trim();
         String id = String.valueOf(mImage.getId());

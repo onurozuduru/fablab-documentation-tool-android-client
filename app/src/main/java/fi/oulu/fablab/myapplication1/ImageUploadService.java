@@ -1,5 +1,6 @@
 package fi.oulu.fablab.myapplication1;
 
+import fi.oulu.fablab.myapplication1.models.Image;
 import retrofit.Callback;
 import retrofit.http.Multipart;
 import retrofit.http.POST;
@@ -12,7 +13,7 @@ public interface ImageUploadService {
     @Multipart
     @POST("/imageupload/")
     void uploadImage(@Part("files[]") TypedFile file,
-                @Part("id") String id,
-                @Part("size") String size,
-                Callback<String> cb);
+                @Part("id") String id, // postid
+                @Part("size") String size, // size-1, size-2, size-3
+                Callback<Image> cb);
 }

@@ -31,14 +31,12 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 public class MainActivity extends AppCompatActivity {
-
-    //TODO new image
     private RecyclerView mRecyclerView;
     private ProjectsAdapter mAdapter;
     private Integer totalPages;
     private Integer currentPage;
     public static ApiClient API_CLIENT;
-    public static ApiClient API_CLIENT_NO_USERID;
+    public static ApiClient API_CLIENT_NO_USERID;// TODO remove this, if it is not needed
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

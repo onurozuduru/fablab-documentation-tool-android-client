@@ -2,20 +2,21 @@ package fi.oulu.fablab.myapplication1;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Environment;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.design.widget.Snackbar;
-import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.CursorLoader;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,18 +30,15 @@ import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 import com.karumi.dexter.listener.multi.SnackbarOnAnyDeniedMultiplePermissionsListener;
 import com.squareup.picasso.Picasso;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
 import fi.oulu.fablab.myapplication1.dirfactories.AlbumStorageDirFactory;
-import fi.oulu.fablab.myapplication1.dirfactories.BaseAlbumDirFactory;
 import fi.oulu.fablab.myapplication1.dirfactories.FroyoAlbumDirFactory;
+import fi.oulu.fablab.myapplication1.models.Image;
 import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
@@ -50,6 +48,8 @@ import retrofit.mime.TypedFile;
 public class PhotoUploadActivity extends AppCompatActivity {
     private final int REQUEST_CAMERA = 0;
     private final int SELECT_FILE = 1;
+    private static final String JPEG_FILE_PREFIX = "IMG_";
+    private static final String JPEG_FILE_SUFFIX = ".jpg";
 
     RadioGroup radioGroupSize;
     RadioButton radioButtonSize1;
@@ -64,14 +64,11 @@ public class PhotoUploadActivity extends AppCompatActivity {
 
     MultiplePermissionsListener multiplePermissionsListener;
 
-    private Bitmap mImageBitmap;
-    private static final String JPEG_FILE_PREFIX = "IMG_";
-    private static final String JPEG_FILE_SUFFIX = ".jpg";
     private AlbumStorageDirFactory mAlbumStorageDirFactory = null;
     private String mCurrentPhotoPath;
-    private String selectedFile = null;
+    private String selectedFile;
 
-    private String id;
+    private String id;// postid
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,14 +89,16 @@ public class PhotoUploadActivity extends AppCompatActivity {
         // Since min target API is greater than API 16.
         mAlbumStorageDirFactory = new FroyoAlbumDirFactory();
 
-        mImageBitmap = null;
-
+        // Get the postid.
         id = getIntent().getStringExtra("id");
+
+        selectedFile = null;
 
         setListeners();
     }
 
     private void setListeners() {
+        // Permission listener to get permissions dynamically by Dexter.
         multiplePermissionsListener = SnackbarOnAnyDeniedMultiplePermissionsListener.Builder
                 .with((ViewGroup) findViewById(android.R.id.content), "Camera and storage access is needed to take picture")
                 .withOpenSettingsButton("Settings")
@@ -124,7 +123,7 @@ public class PhotoUploadActivity extends AppCompatActivity {
                 int currentAPIVersion = Build.VERSION.SDK_INT;
                 if(currentAPIVersion>=android.os.Build.VERSION_CODES.M) {
                     if (ContextCompat.checkSelfPermission(PhotoUploadActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-                        // Use Dexter to grand permissions
+                        // Use Dexter to grant permissions
                         Dexter.withActivity(PhotoUploadActivity.this)
                                 .withPermissions(
                                         Manifest.permission.CAMERA,
@@ -132,10 +131,12 @@ public class PhotoUploadActivity extends AppCompatActivity {
                                 ).withListener(multiplePermissionsListener).check();
                     }
                     else {
+                        // If permissions have been already granted, open camera.
                         startCameraIntent();
                     }
                 }
                 else {
+                    // If it is less than Android 6.0
                     startCameraIntent();
                 }
             }
@@ -157,8 +158,6 @@ public class PhotoUploadActivity extends AppCompatActivity {
     }
 
     protected void startCameraIntent() {
-//        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//        startActivityForResult(intent, REQUEST_CAMERA);
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         File f = null;
 
@@ -192,21 +191,24 @@ public class PhotoUploadActivity extends AppCompatActivity {
     }
 
     protected void uploadImage() {
+        // If there is no file do not do anything.
         if(selectedFile == null)
             return;
 
+        // Base URL of image upload page is different from common API service.
+        // So, new adaptor is needed for Image Upload Service.
         RestAdapter restAdapter = new RestAdapter.Builder()
                 .setEndpoint(ImageUploadService.BASE_URL)
                 .setLogLevel(RestAdapter.LogLevel.FULL)
                 .build();
         ImageUploadService service = restAdapter.create(ImageUploadService.class);
 
+        // Create file for multipart form.
         TypedFile typedFile = new TypedFile("multipart/form-data", new File(selectedFile));
 
+        // Get selected size of the image. Default is size-2.
         int selectedRadioButtonId = radioGroupSize.getCheckedRadioButtonId();
-
         String size = "size-2";
-
         switch (selectedRadioButtonId) {
             case (R.id.radioButtonSize1):
                 size = "size-1";
@@ -219,15 +221,22 @@ public class PhotoUploadActivity extends AppCompatActivity {
                 break;
         }
 
-        service.uploadImage(typedFile, id, size, new Callback<String>() {
+        // Upload the image and show feedback to user.
+        service.uploadImage(typedFile, id, size, new Callback<Image>() {
             @Override
-            public void success(String s, Response response) {
-
+            public void success(Image image, Response response) {
+                Snackbar.make(findViewById(R.id.layoutPhotoUpload),
+                        "Image is Uploaded!",
+                        Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
             }
 
             @Override
             public void failure(RetrofitError error) {
-
+                Snackbar.make(findViewById(R.id.layoutPhotoUpload),
+                        "Something went wrong, Please try again later!",
+                        Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
             }
         });
 
@@ -241,66 +250,96 @@ public class PhotoUploadActivity extends AppCompatActivity {
                 galleryResult(data);
             }
             else if (requestCode == REQUEST_CAMERA) {
-                //cameraResult(data);
-                handleBigCameraPhoto();
+                cameraResult();
             }
         }
     }
 
-    private void cameraResult(Intent data) {
-        Bitmap thumbnail = (Bitmap) data.getExtras().get("data");
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        //thumbnail.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
-
-        File destination = new File(Environment.getExternalStorageDirectory(),
-                System.currentTimeMillis() + ".jpg");
-
-        FileOutputStream fo;
-        try {
-            destination.createNewFile();
-            fo = new FileOutputStream(destination);
-            fo.write(bytes.toByteArray());
-            fo.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+    private void cameraResult() {
+        if (mCurrentPhotoPath != null) {
+            // Show image to user by loading it to an imageview.
+            Picasso
+                    .with(getBaseContext())
+                    .load("file:" + mCurrentPhotoPath) // Add file: prefix to path, otherwise it won't work.
+                    .fit()// Resize image for imageview.
+                    .centerInside()// Respect aspect ratio.
+                    .into(imageViewUserImage);
+            // Save image to gallery which belongs to this application.
+            galleryAddPic();
+            // Reset path to get a new image from camera.
+            mCurrentPhotoPath = null;
         }
-
-        if(thumbnail != null) {
-            imageViewUserImage.setImageBitmap(thumbnail);
-        }
-
     }
 
     private void galleryResult(Intent data) {
-        Bitmap bm=null;
         if (data != null) {
-            //try {
-                //bm = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), data.getData());
-            //} catch (IOException e) {
-            //    e.printStackTrace();
-            //}
-            //imageViewUserImage.setImageBitmap(bm);
+            // Show image to user by loading it to an imageview.
             Picasso
                 .with(getBaseContext())
-                .load(data.getData())
-                .fit()
-                .centerInside()
+                .load("file:" + getRealPathFromURI(this, data.getData()))// Real path is needed to get right orientation data in API 19.
+                .fit()// Resize image for imageview.
+                .centerInside()// Respect aspect ratio.
                 .into(imageViewUserImage);
-            selectedFile = data.getData().getPath();
+            // Keep real path of the image to upload.
+            selectedFile = getRealPathFromURI(this, data.getData());
         }
     }
 
     /*
-
+    * TODO This code comes from below Github page, but there is no license file in the repo
+    * https://github.com/hmkcode/Android/blob/master/android-show-image-and-path/src/com/hmkcode/android/image/RealPathUtil.java
+    * This solution is really needed for API 19 and above. Solution for API 18 and below is actually a standard solution.
      */
+    public static String getRealPathFromURI(Context context, Uri uri){
+        String filePath = "";
+        if(Build.VERSION.SDK_INT < 19) {
+            String[] proj = { MediaStore.Images.Media.DATA };
+            CursorLoader cursorLoader = new CursorLoader(context, uri, proj, null, null, null);
+            Cursor cursor = cursorLoader.loadInBackground();
+            if(cursor != null){
+                int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+                cursor.moveToFirst();
+                filePath = cursor.getString(column_index);
+            }
+        }
+        else {
+            String wholeID = DocumentsContract.getDocumentId(uri);
+
+            // Split at colon, use second item in the array
+            String id = wholeID.split(":")[1];
+
+            String[] column = { MediaStore.Images.Media.DATA };
+
+            // where id is equal to
+            String sel = MediaStore.Images.Media._ID + "=?";
+
+            Cursor cursor = context.getContentResolver().query(MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    column, sel, new String[]{ id }, null);
+
+            int columnIndex = cursor.getColumnIndex(column[0]);
+
+            if (cursor.moveToFirst()) {
+                filePath = cursor.getString(columnIndex);
+            }
+            cursor.close();
+        }
+        return filePath;
+    }
+
     /* Photo album for this application */
     private String getAlbumName() {
+    /*
+    * This function is borrowed from Android Developer Platform examples.
+    * Example page: https://developer.android.com/training/camera/photobasics.html
+    */
         return getString(R.string.album_name);
     }
 
     private File getAlbumDir() {
+    /*
+    * This function is borrowed from Android Developer Platform examples.
+    * Example page: https://developer.android.com/training/camera/photobasics.html
+    */
         File storageDir = null;
 
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
@@ -324,6 +363,10 @@ public class PhotoUploadActivity extends AppCompatActivity {
     }
 
     private File createImageFile() throws IOException {
+    /*
+    * This function is borrowed from Android Developer Platform examples.
+    * Example page: https://developer.android.com/training/camera/photobasics.html
+    */
         // Create an image file name
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(new Date());
         String imageFileName = JPEG_FILE_PREFIX + timeStamp + "_";
@@ -333,71 +376,27 @@ public class PhotoUploadActivity extends AppCompatActivity {
     }
 
     private File setUpPhotoFile() throws IOException {
-
+    /*
+    * This function is borrowed from Android Developer Platform examples.
+    * Example page: https://developer.android.com/training/camera/photobasics.html
+    */
         File f = createImageFile();
         mCurrentPhotoPath = f.getAbsolutePath();
 
         return f;
     }
 
-    private void setPic() {
-
-//		/* There isn't enough memory to open up more than a couple camera photos */
-//		/* So pre-scale the target bitmap into which the file is decoded */
-//
-//		/* Get the size of the ImageView */
-//        int targetW = imageViewUserImage.getWidth();
-//        int targetH = imageViewUserImage.getHeight();
-//
-//		/* Get the size of the image */
-//        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-//        bmOptions.inJustDecodeBounds = true;
-//        BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
-//        int photoW = bmOptions.outWidth;
-//        int photoH = bmOptions.outHeight;
-//
-//		/* Figure out which way needs to be reduced less */
-//        int scaleFactor = 1;
-//        if ((targetW > 0) || (targetH > 0)) {
-//            scaleFactor = Math.min(photoW/targetW, photoH/targetH);
-//        }
-//
-//		/* Set bitmap options to scale the image decode target */
-//        bmOptions.inJustDecodeBounds = false;
-//        bmOptions.inSampleSize = scaleFactor;
-//        bmOptions.inPurgeable = true;
-//
-//		/* Decode the JPEG file into a Bitmap */
-//        Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
-//
-//		/* Associate the Bitmap to the ImageView */
-//        imageViewUserImage.setImageBitmap(bitmap);
-//        //mVideoUri = null;
-//        imageViewUserImage.setVisibility(View.VISIBLE);
-//        //imageViewUserImage.setVisibility(View.INVISIBLE);
-    }
-
     private void galleryAddPic() {
+    /*
+    * This function is borrowed from Android Developer Platform examples.
+    * And modified for needs of this application.
+    * Example page: https://developer.android.com/training/camera/photobasics.html
+    */
         Intent mediaScanIntent = new Intent("android.intent.action.MEDIA_SCANNER_SCAN_FILE");
         File f = new File(mCurrentPhotoPath);
         Uri contentUri = Uri.fromFile(f);
         mediaScanIntent.setData(contentUri);
         this.sendBroadcast(mediaScanIntent);
         selectedFile = contentUri.getPath();
-    }
-
-    private void handleBigCameraPhoto() {
-
-        if (mCurrentPhotoPath != null) {
-            Picasso
-                .with(getBaseContext())
-                .load("file:" + mCurrentPhotoPath)
-                .fit()
-                .centerInside()
-                .into(imageViewUserImage);
-            galleryAddPic();
-            mCurrentPhotoPath = null;
-        }
-
     }
 }

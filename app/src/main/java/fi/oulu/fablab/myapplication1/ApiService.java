@@ -19,8 +19,6 @@ import retrofit.http.Query;
 public interface ApiService {
     /////////////////// Content End Points
 
-//    @GET("/contents/")
-//    void getProjectList(Callback<Content.ContentItems> cb);
     @GET("/contents/")
     void getProjectList(@Query("page") Integer page, Callback<Page<Content>> cb);
 
