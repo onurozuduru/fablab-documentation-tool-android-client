@@ -8,7 +8,7 @@ import retrofit.http.Part;
 import retrofit.mime.TypedFile;
 
 public interface ImageUploadService {
-    public static final String BASE_URL = "http://10.20.220.57";
+    public static final String BASE_URL = "http://10.20.204.64";
 
     @Multipart
     @POST("/imageupload/")

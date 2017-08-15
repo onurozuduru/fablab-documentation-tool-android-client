@@ -4,7 +4,7 @@ import retrofit.RequestInterceptor;
 import retrofit.RestAdapter;
 
 public class ApiClient {
-    private static final String BASE_URL = "http://10.20.220.57/api";
+    private static final String BASE_URL = "http://10.20.204.64/api";
     private static final String PARAM_KEY_USERID = "userid";
     private String userid;
     private ApiService apiService;
