@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private Integer totalPages;
     private Integer currentPage;
     public static ApiClient API_CLIENT;
-    public static ApiClient API_CLIENT_NO_USERID;// TODO remove this, if it is not needed
+    public static ApiClient API_CLIENT_NO_USERID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        API_CLIENT = new ApiClient("1");
+        API_CLIENT = new ApiClient("4");
         API_CLIENT_NO_USERID = new ApiClient();
 
         totalPages = 1;
