@@ -37,3 +37,7 @@ protected void onCreate(Bundle savedInstanceState) {
 }
 ```
 
+## Important Note for Voice Notes
+
+__There must be at least one voice recorder application on your device to use voice notes!__
+
