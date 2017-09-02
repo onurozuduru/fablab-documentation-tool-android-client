@@ -1,5 +1,22 @@
 # FabLab Documentation Tool - Android Client
 
+---
+
+__This project is still under development!__
+
+This repo only shows `v0.1`. Project will be continued to develop under below page.
+
+_Link will be available soon!_
+
+Developers:
+
+- Ivan Sanchez Milara
+- Onur Ozuduru
+
+This is code of Android client, back-end and web client can be seen from [here.](https://github.com/onurozuduru/fablab-documentation-tool)
+
+---
+
 This Readme explains briefly which parts must be changed to use
 Android app.
 
