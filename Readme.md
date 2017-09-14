@@ -6,7 +6,7 @@ __This project is still under development!__
 
 This repo only shows `v0.1`. Project will be continued to develop under below page.
 
-_Link will be available soon!_
+https://gitlab.com/fablabdocumentation/documentation_client
 
 Developers:
 
